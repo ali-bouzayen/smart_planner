@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartPlanner — Ali Bouzayen</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #0F9D8C;
+    --accent2: #0FC8B5;
+    --bg: #080F0E;
+    --card: #0D1614;
+    --card2: #132220;
+    --border: rgba(15,157,140,0.15);
+    --border2: rgba(255,255,255,0.06);
+    --text: #E8F5F3;
+    --muted: #6B8C88;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  header {
+    background:rgba(8,15,14,0.95); backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border); padding:0 2rem;
+    height:64px; display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:100;
+  }
+  .logo { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; }
+  .logo span { color:var(--accent2); }
+
+  .header-info {
+    font-size:0.82rem; color:var(--muted);
+    background:rgba(15,157,140,0.08); border:1px solid var(--border);
+    padding:6px 14px; border-radius:8px;
+  }
+
+  main { max-width:1200px; margin:0 auto; padding:2.5rem 2rem; }
+
+  .page-grid { display:grid; grid-template-columns:340px 1fr; gap:28px; align-items:start; }
+  @media(max-width:900px) { .page-grid { grid-template-columns:1fr; } }
+
+  /* SIDEBAR */
+  .sidebar { display:flex; flex-direction:column; gap:16px; }
+
+  .panel {
+    background:var(--card); border:1px solid var(--border2);
+    border-radius:16px; padding:22px;
+  }
+  .panel-title {
+    font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem;
+    margin-bottom:18px; color:var(--accent2);
+    display:flex; align-items:center; gap:8px;
+  }
+
+  .input-group { margin-bottom:12px; }
+  label { display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:6px; }
+  input, select {
+    width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--border2);
+    border-radius:9px; padding:10px 13px; color:var(--text);
+    font-family:'DM Sans',sans-serif; font-size:0.88rem; outline:none;
+    transition:border-color 0.2s;
+  }
+  input:focus, select:focus { border-color:var(--accent); }
+  select option { background:#0D1614; }
+
+  .add-subject-btn {
+    width:100%; background:rgba(15,157,140,0.1); border:1px solid var(--border);
+    border-radius:9px; padding:10px; color:var(--accent2);
+    font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem;
+    cursor:pointer; transition:all 0.2s; margin-top:4px;
+  }
+  .add-subject-btn:hover { background:rgba(15,157,140,0.18); }
+
+  .subject-list { display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+  .subject-item {
+    display:flex; align-items:center; gap:10px;
+    background:rgba(255,255,255,0.03); border:1px solid var(--border2);
+    border-radius:9px; padding:10px 12px;
+    animation:fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+  .subject-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .subject-name { flex:1; font-size:0.85rem; }
+  .subject-hours {
+    font-size:0.75rem; background:rgba(15,157,140,0.1);
+    border:1px solid var(--border); color:var(--accent2);
+    border-radius:5px; padding:2px 8px; font-weight:600;
+  }
+  .subject-del {
+    width:22px; height:22px; border-radius:5px;
+    background:rgba(255,80,80,0.08); border:1px solid rgba(255,80,80,0.15);
+    color:#FF8080; font-size:0.7rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s;
+  }
+  .subject-del:hover { background:rgba(255,80,80,0.18); }
+
+  .action-btns { display:flex; gap:10px; margin-top:4px; }
+  .btn-gen {
+    flex:2; background:var(--accent); border:none; border-radius:10px;
+    padding:12px; color:#fff; font-family:'Syne',sans-serif; font-weight:700;
+    font-size:0.9rem; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-gen:hover { background:var(--accent2); transform:translateY(-1px); box-shadow:0 6px 20px rgba(15,157,140,0.3); }
+  .btn-reset {
+    flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border2);
+    border-radius:10px; padding:12px; color:var(--muted);
+    font-size:0.88rem; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-reset:hover { background:rgba(255,80,80,0.08); color:#FF8080; border-color:rgba(255,80,80,0.2); }
+
+  /* PLANNING */
+  .planning-area { }
+
+  .planning-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:20px;
+  }
+  .planning-title { font-family:'Syne',sans-serif; font-weight:800; font-size:1.2rem; }
+  .week-badge {
+    background:rgba(15,157,140,0.1); border:1px solid var(--border);
+    color:var(--accent2); border-radius:8px; padding:5px 14px;
+    font-size:0.82rem; font-weight:600;
+  }
+
+  .empty-planning {
+    background:var(--card); border:1px solid var(--border2);
+    border-radius:16px; padding:4rem 2rem;
+    text-align:center; color:var(--muted);
+  }
+  .empty-planning .ico { font-size:3rem; margin-bottom:1rem; }
+
+  .table-wrap { overflow-x:auto; border-radius:16px; }
+
+  table {
+    width:100%; border-collapse:collapse;
+    background:var(--card);
+  }
+  thead tr th {
+    background:rgba(15,157,140,0.1);
+    padding:14px 10px; text-align:center;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:0.82rem;
+    color:var(--accent2); border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  thead tr th:first-child { border-radius:16px 0 0 0; }
+  thead tr th:last-child { border-radius:0 16px 0 0; }
+
+  .time-col {
+    font-size:0.72rem; color:var(--muted); padding:12px 14px;
+    border-right:1px solid var(--border2); white-space:nowrap;
+    vertical-align:middle; text-align:center;
+    border-bottom:1px solid var(--border2);
+  }
+
+  .plan-cell {
+    padding:6px; border:1px solid var(--border2);
+    vertical-align:middle; text-align:center; min-width:90px;
+  }
+
+  .cell-subject {
+    border-radius:8px; padding:8px 6px;
+    font-size:0.78rem; font-weight:600; line-height:1.3;
+  }
+
+  .legend-row {
+    display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;
+    background:var(--card); border:1px solid var(--border2);
+    border-radius:12px; padding:14px 18px;
+  }
+  .legend-item { display:flex; align-items:center; gap:7px; font-size:0.78rem; color:var(--muted); }
+  .legend-dot { width:10px; height:10px; border-radius:4px; flex-shrink:0; }
+
+  .stats-row-plan {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:12px; margin-top:16px;
+  }
+  .stat-mini {
+    background:var(--card); border:1px solid var(--border2);
+    border-radius:12px; padding:14px;
+  }
+  .stat-mini-val { font-family:'Syne',sans-serif; font-weight:700; font-size:1.2rem; color:var(--accent2); }
+  .stat-mini-lbl { font-size:0.72rem; color:var(--muted); margin-top:3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Smart<span>Planner</span></div>
+  <div class="header-info" id="week-info">Semaine courante</div>
+</header>
+
+<main>
+  <div class="page-grid">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="panel">
+        <div class="panel-title">📚 Ajouter une matière</div>
+        <div class="input-group">
+          <label>Nom de la matière</label>
+          <input type="text" id="inp-subject" placeholder="Ex: Mathématiques" />
+        </div>
+        <div class="input-group">
+          <label>Heures par semaine</label>
+          <input type="number" id="inp-hours" placeholder="Ex: 4" min="1" max="20" />
+        </div>
+        <div class="input-group">
+          <label>Créneau préféré</label>
+          <select id="inp-slot">
+            <option value="matin">Matin (8h–12h)</option>
+            <option value="apres">Après-midi (14h–18h)</option>
+            <option value="any">Peu importe</option>
+          </select>
+        </div>
+        <button class="add-subject-btn" onclick="addSubject()">+ Ajouter</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">📋 Liste des matières</div>
+        <div class="subject-list" id="subject-list">
+          <div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:1rem">Aucune matière ajoutée</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">⚙️ Actions</div>
+        <div class="action-btns">
+          <button class="btn-gen" onclick="generatePlanning()">🗓 Générer</button>
+          <button class="btn-reset" onclick="resetAll()">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Planning Area -->
+    <div class="planning-area">
+      <div class="planning-header">
+        <div class="planning-title">Planning Hebdomadaire</div>
+        <div class="week-badge" id="week-badge">Semaine ?</div>
+      </div>
+
+      <div id="planning-output">
+        <div class="empty-planning">
+          <div class="ico">📅</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:8px">Planning vide</div>
+          <div style="font-size:0.85rem">Ajoutez vos matières et cliquez sur <strong style="color:var(--accent2)">Générer</strong></div>
+        </div>
+      </div>
+
+      <div id="planning-stats" style="display:none">
+        <div class="stats-row-plan" id="stats-content"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  const COLORS = [
+    { bg:'rgba(15,157,140,0.15)', text:'#0FC8B5', border:'rgba(15,157,140,0.3)' },
+    { bg:'rgba(26,115,232,0.15)', text:'#64B5F6', border:'rgba(26,115,232,0.3)' },
+    { bg:'rgba(123,79,204,0.15)', text:'#CE93D8', border:'rgba(123,79,204,0.3)' },
+    { bg:'rgba(255,193,7,0.12)',  text:'#FFD54F', border:'rgba(255,193,7,0.25)' },
+    { bg:'rgba(255,107,53,0.13)', text:'#FF8A65', border:'rgba(255,107,53,0.3)' },
+    { bg:'rgba(236,72,153,0.13)', text:'#F48FB1', border:'rgba(236,72,153,0.3)' },
+    { bg:'rgba(74,222,128,0.13)', text:'#81C784', border:'rgba(74,222,128,0.3)' },
+    { bg:'rgba(251,146,60,0.13)', text:'#FFAB76', border:'rgba(251,146,60,0.3)' },
+  ];
+
+  const DAYS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi'];
+  const SLOTS = [
+    {id:'s1', label:'08h–09h30', type:'matin'},
+    {id:'s2', label:'09h30–11h', type:'matin'},
+    {id:'s3', label:'11h–12h30', type:'matin'},
+    {id:'s4', label:'14h–15h30', type:'apres'},
+    {id:'s5', label:'15h30–17h', type:'apres'},
+    {id:'s6', label:'17h–18h30', type:'apres'},
+  ];
+
+  let subjects = [];
+
+  function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+  }
+
+  const now = new Date();
+  const wn = getWeekNumber(now);
+  document.getElementById('week-info').textContent = `Semaine ${wn} · ${now.getFullYear()}`;
+  document.getElementById('week-badge').textContent = `Semaine ${wn}`;
+
+  function addSubject() {
+    const name = document.getElementById('inp-subject').value.trim();
+    const hours = parseInt(document.getElementById('inp-hours').value);
+    const slot = document.getElementById('inp-slot').value;
+    if (!name) { document.getElementById('inp-subject').focus(); return; }
+    if (!hours || hours < 1) { document.getElementById('inp-hours').focus(); return; }
+
+    if (subjects.find(s => s.name.toLowerCase() === name.toLowerCase())) {
+      alert('Cette matière existe déjà !'); return;
+    }
+
+    const color = COLORS[subjects.length % COLORS.length];
+    subjects.push({ name, hours, slot, color });
+    document.getElementById('inp-subject').value = '';
+    document.getElementById('inp-hours').value = '';
+    renderSubjectList();
+  }
+
+  function removeSubject(i) {
+    subjects.splice(i,1);
+    // Reassign colors
+    subjects.forEach((s,idx) => s.color = COLORS[idx % COLORS.length]);
+    renderSubjectList();
+  }
+
+  function renderSubjectList() {
+    const el = document.getElementById('subject-list');
+    if (subjects.length === 0) {
+      el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.82rem;padding:1rem">Aucune matière ajoutée</div>';
+      return;
+    }
+    el.innerHTML = subjects.map((s,i) => `
+      <div class="subject-item">
+        <div class="subject-dot" style="background:${s.color.text}"></div>
+        <div class="subject-name">${s.name}</div>
+        <div class="subject-hours">${s.hours}h</div>
+        <div class="subject-del" onclick="removeSubject(${i})">✕</div>
+      </div>
+    `).join('');
+  }
+
+  function generatePlanning() {
+    if (subjects.length === 0) { alert('Ajoutez au moins une matière !'); return; }
+
+    // Build grid: days x slots
+    const grid = {};
+    DAYS.forEach(d => { grid[d] = {}; SLOTS.forEach(s => grid[d][s.id] = null); });
+
+    // Create queue: expand subjects into session units
+    let queue = [];
+    subjects.forEach(sub => {
+      // Convert hours to 1.5h sessions (rounded up)
+      const sessions = Math.ceil(sub.hours / 1.5);
+      for (let i=0; i<sessions; i++) queue.push(sub);
+    });
+
+    // Shuffle for variety
+    for (let i=queue.length-1; i>0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [queue[i],queue[j]] = [queue[j],queue[i]];
+    }
+
+    // Assign to slots respecting preference
+    let qi = 0;
+    // First pass: respect preference
+    DAYS.forEach(day => {
+      SLOTS.forEach(slot => {
+        if (qi >= queue.length) return;
+        const sub = queue[qi];
+        const pref = sub.slot;
+        if (pref === 'any' || pref === slot.type) {
+          grid[day][slot.id] = sub;
+          qi++;
+        }
+      });
+    });
+    // Second pass: fill remaining with any
+    DAYS.forEach(day => {
+      SLOTS.forEach(slot => {
+        if (grid[day][slot.id] === null && qi < queue.length) {
+          grid[day][slot.id] = queue[qi++];
+        }
+      });
+    });
+
+    renderPlanning(grid);
+  }
+
+  function renderPlanning(grid) {
+    let html = `<div class="table-wrap"><table>
+      <thead><tr>
+        <th style="min-width:90px">Horaire</th>
+        ${DAYS.map(d=>`<th>${d}</th>`).join('')}
+      </tr></thead>
+      <tbody>`;
+
+    SLOTS.forEach(slot => {
+      html += `<tr><td class="time-col">${slot.label}</td>`;
+      DAYS.forEach(day => {
+        const sub = grid[day][slot.id];
+        if (sub) {
+          html += `<td class="plan-cell">
+            <div class="cell-subject" style="background:${sub.color.bg};color:${sub.color.text};border:1px solid ${sub.color.border}">
+              ${sub.name}
+            </div>
+          </td>`;
+        } else {
+          html += `<td class="plan-cell"><div style="color:rgba(255,255,255,0.12);font-size:0.75rem">—</div></td>`;
+        }
+      });
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+
+    // Legend
+    html += `<div class="legend-row">
+      ${subjects.map(s=>`
+        <div class="legend-item">
+          <div class="legend-dot" style="background:${s.color.text}"></div>
+          <span>${s.name} (${s.hours}h/sem)</span>
+        </div>
+      `).join('')}
+    </div>`;
+
+    document.getElementById('planning-output').innerHTML = html;
+
+    // Stats
+    const totalH = subjects.reduce((s,sub)=>s+sub.hours,0);
+    const sessionsTotal = subjects.reduce((s,sub)=>s+Math.ceil(sub.hours/1.5),0);
+    document.getElementById('planning-stats').style.display = 'block';
+    document.getElementById('stats-content').innerHTML = `
+      <div class="stat-mini"><div class="stat-mini-val">${subjects.length}</div><div class="stat-mini-lbl">Matières</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${totalH}h</div><div class="stat-mini-lbl">Total hebdo</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${sessionsTotal}</div><div class="stat-mini-lbl">Séances</div></div>
+      <div class="stat-mini"><div class="stat-mini-val">${(totalH/5).toFixed(1)}h</div><div class="stat-mini-lbl">Moy./jour</div></div>
+    `;
+  }
+
+  function resetAll() {
+    if (subjects.length === 0 && document.getElementById('planning-output').querySelector('table') === null) return;
+    subjects = [];
+    renderSubjectList();
+    document.getElementById('planning-output').innerHTML = `
+      <div class="empty-planning">
+        <div class="ico">📅</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:8px">Planning réinitialisé</div>
+        <div style="font-size:0.85rem">Ajoutez vos matières et cliquez sur <strong style="color:var(--accent2)">Générer</strong></div>
+      </div>`;
+    document.getElementById('planning-stats').style.display = 'none';
+  }
+
+  document.getElementById('inp-subject').addEventListener('keydown', e => { if(e.key==='Enter') addSubject(); });
+</script>
+</body>
+</html>
